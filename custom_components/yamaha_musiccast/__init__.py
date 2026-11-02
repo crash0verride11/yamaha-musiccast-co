@@ -82,7 +82,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             (
                 c
                 for c in (zone_data.capabilities if zone_data else [])
-                if isinstance(c, Scene) and c._num == scene_num
+                if isinstance(c, Scene) and c.num == scene_num
             ),
             None,
         )
@@ -91,7 +91,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 f"Scene {scene_num} not found for zone '{zone_id}'."
             )
 
-        await coordinator.musiccast.set_scene_info(zone_id, scene._num, name)
+        await coordinator.musiccast.set_scene_info(zone_id, scene.num, name)
         await coordinator.async_request_refresh()
 
     hass.services.async_register(

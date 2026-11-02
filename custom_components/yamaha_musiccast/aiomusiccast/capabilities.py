@@ -261,6 +261,11 @@ class Scene(Capability):
         self._activate = activate
 
     @property
+    def num(self) -> int:
+        """Scene number as reported by the device."""
+        return self._num
+
+    @property
     def name(self) -> str:
         return f"{self._num}: {self._title_getter(self._num)}"
 
