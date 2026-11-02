@@ -12,10 +12,10 @@
   "issue_tracker": "https://github.com/crash0verride11/yamaha-musiccast-co/issues",
   "loggers": ["aiomusiccast_co"],
   "requirements": ["aiomusiccast-co==0.16.0"],
-  "version": "1.1.0",
   "ssdp": [
     {
       "manufacturer": "Yamaha Corporation"
     }
-  ]
+  ],
+  "version": "1.1.0"
 }
