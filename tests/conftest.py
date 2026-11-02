@@ -9,9 +9,9 @@ import it the same way the integration itself does.
 import importlib.util
 import os
 import sys
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import MagicMock
 
 # ---------------------------------------------------------------------------
 # Inject aiomusiccast as a top-level package before any test file is loaded.
@@ -38,27 +38,27 @@ if _ROOT not in sys.path:
 # Shared fixtures
 # ---------------------------------------------------------------------------
 
-from custom_components.yamaha_musiccast.aiomusiccast.musiccast_data import Category  # noqa: E402
 from collections.abc import Generator  # noqa: E402
 from unittest.mock import AsyncMock, patch  # noqa: E402
 
-from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
+
+from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (  # noqa: E402
     BinarySetter,
     EntityType,
-)  # noqa: E402
-from custom_components.yamaha_musiccast.aiomusiccast.features import (
+)
+from custom_components.yamaha_musiccast.aiomusiccast.features import (  # noqa: E402
     DeviceFeature,
     ZoneFeature,
-)  # noqa: E402
+)
 from custom_components.yamaha_musiccast.aiomusiccast.musiccast_data import (  # noqa: E402
+    Category,
     Dimmer,
     MusicCastAlarmDetails,
     MusicCastData,
     MusicCastZoneData,
     RangeStep,
 )
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
-
 from custom_components.yamaha_musiccast.const import DEFAULT_ZONE, DOMAIN  # noqa: E402
 from homeassistant.const import CONF_HOST  # noqa: E402
 

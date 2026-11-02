@@ -4,12 +4,12 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from unittest.mock import AsyncMock, patch
 
-from custom_components.yamaha_musiccast.aiomusiccast import MusicCastConnectionException
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from homeassistant import config_entries
+from custom_components.yamaha_musiccast.aiomusiccast import MusicCastConnectionException
 from custom_components.yamaha_musiccast.const import DOMAIN
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant

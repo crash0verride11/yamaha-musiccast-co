@@ -8,8 +8,9 @@ Covers both select entity classes defined in select.py:
                           activation is deferred to ZoneSceneButton.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
     EntityType,
@@ -22,7 +23,6 @@ from custom_components.yamaha_musiccast.select import (
     ZoneSceneSelect,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -31,6 +31,7 @@ from custom_components.yamaha_musiccast.select import (
 def make_speaker_pattern_cap(
     current: int = 0, patterns: list[int] | None = None
 ) -> OptionSetter:
+    """Return a speaker pattern OptionSetter with the given patterns."""
     if patterns is None:
         patterns = [0, 1, 2]
     return OptionSetter(
@@ -44,6 +45,7 @@ def make_speaker_pattern_cap(
 
 
 def make_scene(num: int, title: str, zone_id: str = "main") -> Scene:
+    """Return a Scene capability with a fixed title and a mocked activate."""
     return Scene(
         f"{zone_id}_scene_{num}",
         num,
@@ -64,26 +66,30 @@ class TestSelectableCapability:
     # --- Options list ---
 
     def test_options_built_from_capability(self, mock_coordinator):
+        """Test the options are the capability's labels."""
         cap = make_speaker_pattern_cap(patterns=[0, 1, 2])
         entity = SelectableCapability(mock_coordinator, cap)
 
-        assert entity._attr_options == ["pattern_0", "pattern_1", "pattern_2"]
+        assert entity.options == ["pattern_0", "pattern_1", "pattern_2"]
 
     def test_options_reflect_capability_pattern_list(self, mock_coordinator):
+        """Test the options follow a non-contiguous pattern list."""
         cap = make_speaker_pattern_cap(patterns=[0, 3, 7])
         entity = SelectableCapability(mock_coordinator, cap)
 
-        assert entity._attr_options == ["pattern_0", "pattern_3", "pattern_7"]
+        assert entity.options == ["pattern_0", "pattern_3", "pattern_7"]
 
     # --- Current option ---
 
     def test_current_option_maps_value_to_label(self, mock_coordinator):
+        """Test the current value is shown as its label."""
         cap = make_speaker_pattern_cap(current=1)
         entity = SelectableCapability(mock_coordinator, cap)
 
         assert entity.current_option == "pattern_1"
 
     def test_current_option_is_none_when_value_not_in_options(self, mock_coordinator):
+        """Test an unknown current value gives no current option."""
         cap = OptionSetter(
             "SPEAKER_PATTERN",
             "Speaker Pattern",
@@ -99,21 +105,22 @@ class TestSelectableCapability:
     # --- Translation key and unique ID ---
 
     def test_translation_key_set_from_mapping(self, mock_coordinator):
+        """Test the translation key comes from TRANSLATION_KEY_MAPPING."""
         cap = make_speaker_pattern_cap()
         entity = SelectableCapability(mock_coordinator, cap)
 
-        assert entity._attr_translation_key == TRANSLATION_KEY_MAPPING.get(
-            "SPEAKER_PATTERN"
-        )
-        assert entity._attr_translation_key == "speaker_pattern"
+        assert entity.translation_key == TRANSLATION_KEY_MAPPING.get("SPEAKER_PATTERN")
+        assert entity.translation_key == "speaker_pattern"
 
     def test_unique_id_combines_device_and_capability(self, mock_coordinator):
+        """Test the unique ID combines the device ID and capability ID."""
         cap = make_speaker_pattern_cap()
         entity = SelectableCapability(mock_coordinator, cap)
 
         assert entity.unique_id == "TEST_DEVICE_ID_SPEAKER_PATTERN"
 
     def test_zone_capability_unique_id_includes_zone_suffix(self, mock_coordinator):
+        """Test a sub-zone capability's unique ID includes the zone."""
         zone = MagicMock()
         zone.name = "Zone 2"
         zone.capabilities = []
@@ -146,6 +153,7 @@ class TestSelectableCapability:
 
     @pytest.mark.asyncio
     async def test_select_option_rejects_unknown_label(self, mock_coordinator):
+        """Test selecting an unknown label raises."""
         cap = make_speaker_pattern_cap(patterns=[0, 1])
         entity = SelectableCapability(mock_coordinator, cap)
 
@@ -154,6 +162,7 @@ class TestSelectableCapability:
 
     @pytest.mark.asyncio
     async def test_translation_key_refreshed_after_select(self, mock_coordinator):
+        """Test the translation key is still set after selecting an option."""
         set_mock = AsyncMock()
         cap = OptionSetter(
             "SPEAKER_PATTERN",
@@ -166,9 +175,7 @@ class TestSelectableCapability:
         entity = SelectableCapability(mock_coordinator, cap)
         await entity.async_select_option("pattern_0")
 
-        assert entity._attr_translation_key == TRANSLATION_KEY_MAPPING.get(
-            "SPEAKER_PATTERN"
-        )
+        assert entity.translation_key == TRANSLATION_KEY_MAPPING.get("SPEAKER_PATTERN")
 
 
 # ===========================================================================
@@ -182,40 +189,45 @@ class TestZoneSceneSelect:
     # --- Initialisation ---
 
     def test_options_built_from_zone_capabilities(self, mock_coordinator):
+        """Test the options are the zone's scene names."""
         s1 = make_scene(1, "Morning")
         s2 = make_scene(2, "Evening")
         mock_coordinator.data.zones["main"].capabilities = [s1, s2]
 
         entity = ZoneSceneSelect(mock_coordinator, "main")
 
-        assert entity._attr_options == ["1: Morning", "2: Evening"]
+        assert entity.options == ["1: Morning", "2: Evening"]
 
     def test_non_scene_capabilities_ignored(self, mock_coordinator):
+        """Test non-scene capabilities are left out of the options."""
         s1 = make_scene(1, "Morning")
         mock_coordinator.data.zones["main"].capabilities = [s1, MagicMock()]
 
         entity = ZoneSceneSelect(mock_coordinator, "main")
 
-        assert entity._attr_options == ["1: Morning"]
+        assert entity.options == ["1: Morning"]
 
     def test_initial_option_from_coordinator(self, mock_coordinator):
+        """Test the initial option is the scene stored in the coordinator."""
         s1 = make_scene(1, "Morning")
         mock_coordinator.data.zones["main"].capabilities = [s1]
         mock_coordinator.selected_scenes = {"main": s1}
 
         entity = ZoneSceneSelect(mock_coordinator, "main")
 
-        assert entity._attr_current_option == s1.name
+        assert entity.current_option == s1.name
 
     def test_no_initial_option_when_none_stored(self, mock_coordinator):
+        """Test there is no initial option when no scene is stored."""
         mock_coordinator.data.zones["main"].capabilities = [make_scene(1, "Morning")]
         mock_coordinator.selected_scenes = {}
 
         entity = ZoneSceneSelect(mock_coordinator, "main")
 
-        assert entity._attr_current_option is None
+        assert entity.current_option is None
 
     def test_unique_id(self, mock_coordinator):
+        """Test the unique ID combines the device ID with a fixed suffix."""
         mock_coordinator.data.zones["main"].capabilities = [make_scene(1, "M")]
 
         entity = ZoneSceneSelect(mock_coordinator, "main")
@@ -226,6 +238,7 @@ class TestZoneSceneSelect:
 
     @pytest.mark.asyncio
     async def test_select_option_stores_scene_in_coordinator(self, mock_coordinator):
+        """Test selecting an option stores that scene in the coordinator."""
         s1 = make_scene(1, "Morning")
         s2 = make_scene(2, "Evening")
         mock_coordinator.data.zones["main"].capabilities = [s1, s2]
@@ -239,6 +252,7 @@ class TestZoneSceneSelect:
 
     @pytest.mark.asyncio
     async def test_select_option_updates_current_option(self, mock_coordinator):
+        """Test selecting an option updates the current option."""
         s1 = make_scene(1, "Morning")
         mock_coordinator.data.zones["main"].capabilities = [s1]
         mock_coordinator.selected_scenes = {}
@@ -247,7 +261,7 @@ class TestZoneSceneSelect:
         entity.async_write_ha_state = MagicMock()
         await entity.async_select_option("1: Morning")
 
-        assert entity._attr_current_option == "1: Morning"
+        assert entity.current_option == "1: Morning"
 
     @pytest.mark.asyncio
     async def test_select_option_does_not_activate_scene(self, mock_coordinator):

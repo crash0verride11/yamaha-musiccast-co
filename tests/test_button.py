@@ -5,8 +5,9 @@ the coordinator for the zone. Unavailable until a scene has been selected
 via ZoneSceneSelect.
 """
 
+from unittest.mock import AsyncMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
     EntityType,
@@ -14,13 +15,13 @@ from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
 )
 from custom_components.yamaha_musiccast.button import ZoneSceneButton
 
-
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
 
 
 def make_scene(num: int, title: str, zone_id: str = "main") -> Scene:
+    """Return a Scene capability with a fixed title and a mocked activate."""
     return Scene(
         f"{zone_id}_scene_{num}",
         num,
@@ -41,6 +42,7 @@ class TestZoneSceneButton:
     # --- Availability ---
 
     def test_unavailable_without_stored_scene(self, mock_coordinator):
+        """Test the button is unavailable when no scene is stored."""
         mock_coordinator.selected_scenes = {}
 
         btn = ZoneSceneButton(mock_coordinator, "main")
@@ -48,6 +50,7 @@ class TestZoneSceneButton:
         assert not btn.available
 
     def test_available_once_scene_is_stored(self, mock_coordinator):
+        """Test the button becomes available once a scene is stored for its zone."""
         mock_coordinator.selected_scenes = {"main": make_scene(1, "Morning")}
 
         btn = ZoneSceneButton(mock_coordinator, "main")
@@ -55,6 +58,7 @@ class TestZoneSceneButton:
         assert btn.available
 
     def test_unavailable_when_scene_stored_for_different_zone(self, mock_coordinator):
+        """Test a scene stored for another zone doesn't make the button available."""
         mock_coordinator.selected_scenes = {
             "zone2": make_scene(1, "Morning", zone_id="zone2")
         }
@@ -66,6 +70,7 @@ class TestZoneSceneButton:
     # --- Unique ID ---
 
     def test_unique_id(self, mock_coordinator):
+        """Test the unique ID combines the device ID with a fixed suffix."""
         btn = ZoneSceneButton(mock_coordinator, "main")
 
         assert btn.unique_id == "TEST_DEVICE_ID_scene_activate"
@@ -74,6 +79,7 @@ class TestZoneSceneButton:
 
     @pytest.mark.asyncio
     async def test_press_activates_stored_scene(self, mock_coordinator):
+        """Test pressing the button activates the stored scene."""
         activate_mock = AsyncMock()
         scene = Scene(
             "main_scene_1", 1, lambda n: "Morning", EntityType.CONFIG, activate_mock
@@ -88,6 +94,7 @@ class TestZoneSceneButton:
 
     @pytest.mark.asyncio
     async def test_press_requests_coordinator_refresh(self, mock_coordinator):
+        """Test pressing the button requests a coordinator refresh."""
         activate_mock = AsyncMock()
         scene = Scene(
             "main_scene_1", 1, lambda n: "Morning", EntityType.CONFIG, activate_mock
@@ -102,6 +109,7 @@ class TestZoneSceneButton:
 
     @pytest.mark.asyncio
     async def test_press_noop_when_no_scene_selected(self, mock_coordinator):
+        """Test pressing the button does nothing when no scene is stored."""
         mock_coordinator.selected_scenes = {}
         mock_coordinator.async_request_refresh = AsyncMock()
 

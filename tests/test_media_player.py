@@ -8,14 +8,12 @@ MediaPlayerDeviceClass and a matching MDI icon.
 
 import pytest
 
-from homeassistant.components.media_player import MediaPlayerDeviceClass
-
 from custom_components.yamaha_musiccast.aiomusiccast.musiccast_data import Category
 from custom_components.yamaha_musiccast.media_player import (
-    MusicCastMediaPlayer,
     _CATEGORY_TO_DEVICE_CLASS,
+    MusicCastMediaPlayer,
 )
-
+from homeassistant.components.media_player import MediaPlayerDeviceClass
 
 # ---------------------------------------------------------------------------
 # Helper
@@ -23,6 +21,7 @@ from custom_components.yamaha_musiccast.media_player import (
 
 
 def make_player(coordinator) -> MusicCastMediaPlayer:
+    """Return a main-zone media player backed by the given coordinator."""
     return MusicCastMediaPlayer("main", "My Speaker", "entry_id", coordinator)
 
 
@@ -32,8 +31,10 @@ def make_player(coordinator) -> MusicCastMediaPlayer:
 
 
 class TestCategoryEnum:
+    """Tests for the Category enum."""
+
     @pytest.mark.parametrize(
-        "code, expected",
+        ("code", "expected"),
         [
             (0, Category.UNKNOWN),
             (1, Category.AV_RECEIVER),
@@ -45,10 +46,12 @@ class TestCategoryEnum:
         ],
     )
     def test_known_codes(self, code, expected):
+        """Test known category codes map to their Category members."""
         assert Category(code) == expected
 
     @pytest.mark.parametrize("code", [99, 255, -1, 1000])
     def test_unknown_codes_fall_back_to_unknown(self, code):
+        """Test unrecognized category codes fall back to Category.UNKNOWN."""
         assert Category(code) == Category.UNKNOWN
 
 
@@ -58,8 +61,10 @@ class TestCategoryEnum:
 
 
 class TestCategoryToDeviceClassMapping:
+    """Tests for the category to device class mapping."""
+
     @pytest.mark.parametrize(
-        "category, expected_class",
+        ("category", "expected_class"),
         [
             (Category.AV_RECEIVER, MediaPlayerDeviceClass.RECEIVER),
             (Category.STEREO_RECEIVER, MediaPlayerDeviceClass.RECEIVER),
@@ -70,12 +75,15 @@ class TestCategoryToDeviceClassMapping:
         ],
     )
     def test_known_categories(self, category, expected_class):
+        """Test each known category maps to the expected device class."""
         assert _CATEGORY_TO_DEVICE_CLASS[category] == expected_class
 
     def test_unknown_not_in_mapping(self):
+        """Test Category.UNKNOWN has no device class."""
         assert _CATEGORY_TO_DEVICE_CLASS.get(Category.UNKNOWN) is None
 
     def test_all_non_unknown_categories_covered(self):
+        """Test every category except UNKNOWN has a device class."""
         for cat in Category:
             if cat != Category.UNKNOWN:
                 assert cat in _CATEGORY_TO_DEVICE_CLASS, f"{cat} missing from mapping"
@@ -87,8 +95,10 @@ class TestCategoryToDeviceClassMapping:
 
 
 class TestMusicCastMediaPlayerDeviceClassAndIcon:
+    """Tests for the media player's device class and icon."""
+
     @pytest.mark.parametrize(
-        "category, expected_class",
+        ("category", "expected_class"),
         [
             (Category.AV_RECEIVER, MediaPlayerDeviceClass.RECEIVER),
             (Category.STEREO_RECEIVER, MediaPlayerDeviceClass.RECEIVER),
@@ -100,13 +110,14 @@ class TestMusicCastMediaPlayerDeviceClassAndIcon:
         ],
     )
     def test_device_class(self, mock_coordinator, category, expected_class):
+        """Test the device class follows the reported category."""
         mock_coordinator.data.category = category
         player = make_player(mock_coordinator)
 
         assert player.device_class == expected_class
 
     @pytest.mark.parametrize(
-        "category, expected_icon",
+        ("category", "expected_icon"),
         [
             (Category.AV_RECEIVER, "mdi:audio-video"),
             (Category.STEREO_RECEIVER, "mdi:audio-video"),
@@ -118,6 +129,7 @@ class TestMusicCastMediaPlayerDeviceClassAndIcon:
         ],
     )
     def test_icon(self, mock_coordinator, category, expected_icon):
+        """Test the icon follows the device class, falling back to a speaker."""
         mock_coordinator.data.category = category
         player = make_player(mock_coordinator)
 
