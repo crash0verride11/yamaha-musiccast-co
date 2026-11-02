@@ -1,0 +1,36 @@
+name-template: $NEXT_MINOR_VERSION
+tag-template: $NEXT_MINOR_VERSION
+categories:
+  - title: ⬆️ Dependencies
+    label: dependencies
+  - title: 🚀 Features
+    label: feature
+  - title: 🐛 Bug Fixes
+    labels:
+      - fix
+      - bug
+  - title: 🧰 Maintenance
+    label: chore
+  - title: 🚨 Breaking Changes
+    label: breaking
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+  patch:
+    labels:
+      - 'patch'
+      - 'dependencies'
+      - 'chore'
+      - 'fix'
+  default: patch
+
+template: |
+  ## Changes
+  $CHANGES

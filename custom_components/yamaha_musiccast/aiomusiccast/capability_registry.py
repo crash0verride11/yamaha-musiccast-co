@@ -1,0 +1,346 @@
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
+
+from .capabilities import BinarySetter, Capability, EntityType, NumberSetter, OptionSetter, Scene
+from .const import DISPLAY_DIMMER_SPECIALS
+from .features import DeviceFeature, ZoneFeature
+
+if TYPE_CHECKING:
+    from .musiccast_device import MusicCastDevice
+
+DeviceCapabilityFactory = Callable[[str, Any], Capability]
+ZoneCapabilityFactory = Callable[[str, Any, str], Capability]
+
+
+def normalize_option(option: object) -> str:
+    option_str = str(option)
+    return option_str.replace(" ", "_").lower()
+
+
+"""Dictionary of all DeviceFeatures with a callable as value.
+The callable expects an ID and a MusicCastDevice as parameters."""
+_device_capabilities: dict[DeviceFeature, DeviceCapabilityFactory | dict[str, DeviceCapabilityFactory]] = {
+    DeviceFeature.DIMMER: lambda capability_id, device: OptionSetter(
+        capability_id,
+        "Display Brightness",
+        EntityType.CONFIG,
+        lambda: device.data.dimmer.dimmer_current,
+        lambda value: device.set_dimmer(int(value)),
+        {
+            x: normalize_option(DISPLAY_DIMMER_SPECIALS.get(x, x))
+            for x in range(
+                int(device.data.dimmer.minimum), int(device.data.dimmer.maximum + 1), int(device.data.dimmer.step)
+            )
+        },
+    ),
+    DeviceFeature.SPEAKER_A: lambda capability_id, device: BinarySetter(
+        capability_id,
+        "Speaker A",
+        EntityType.CONFIG,
+        lambda: device.data.speaker_a,
+        lambda val: device.set_speaker_a(val),
+    ),
+    DeviceFeature.SPEAKER_B: lambda capability_id, device: BinarySetter(
+        capability_id,
+        "Speaker B",
+        EntityType.CONFIG,
+        lambda: device.data.speaker_b,
+        lambda val: device.set_speaker_b(val),
+    ),
+    DeviceFeature.PARTY_MODE: lambda capability_id, device: BinarySetter(
+        capability_id,
+        "Party Mode",
+        EntityType.CONFIG,
+        lambda: device.data.party_enable,
+        lambda val: device.set_party_mode(val),
+    ),
+    DeviceFeature.SPEAKER_PATTERN: lambda capability_id, device: OptionSetter(
+        capability_id,
+        "Speaker Pattern",
+        EntityType.CONFIG,
+        lambda: device.data.speaker_pattern,
+        lambda val: device.set_speaker_pattern(int(val)),
+        {num: f"pattern_{num}" for num in device.data.speaker_pattern_list},
+    ),
+}
+"""Dictionary of all ZoneFeatures with a callable as value.
+
+The callable expects an ID, a MusicCastDevice and a zone_id as
+parameters.
+"""
+_zone_capabilities: dict[ZoneFeature, ZoneCapabilityFactory | dict[str, ZoneCapabilityFactory]] = {
+    ZoneFeature.SURR_DECODER_TYPE: lambda capability_id, device, zone_id: OptionSetter(
+        capability_id,
+        "Surround Decoder Device",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].surr_decoder_type,
+        lambda val: device.set_surround_decoder(zone_id, val),
+        {key: normalize_option(key) for key in device.data.zones[zone_id].surr_decoder_type_list},
+    ),
+    ZoneFeature.SLEEP: lambda capability_id, device, zone_id: OptionSetter(
+        capability_id,
+        "Sleep Timer",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].sleep_time,
+        lambda val: device.set_sleep_timer(zone_id, val),
+        {0: "off", 30: "30_min", 60: "60_min", 90: "90_min", 120: "120_min"},
+    ),
+    ZoneFeature.EQUALIZER: {
+        "mode": lambda capability_id, device, zone_id: OptionSetter(
+            capability_id,
+            "Equalizer Mode",
+            EntityType.CONFIG,
+            lambda: device.data.zones[zone_id].equalizer_mode,
+            lambda val: device.set_equalizer(zone_id, mode=val),
+            {key: normalize_option(key) for key in device.data.zones[zone_id].equalizer_mode_list},
+        ),
+        "low": lambda capability_id, device, zone_id: NumberSetter(
+            capability_id,
+            "Equalizer Low",
+            EntityType.CONFIG,
+            lambda: device.data.zones[zone_id].equalizer_low,
+            lambda val: device.set_equalizer(zone_id, low=int(val)),
+            device.data.zones[zone_id].range_step["equalizer"].minimum,
+            device.data.zones[zone_id].range_step["equalizer"].maximum,
+            device.data.zones[zone_id].range_step["equalizer"].step,
+        ),
+        "mid": lambda capability_id, device, zone_id: NumberSetter(
+            capability_id,
+            "Equalizer Mid",
+            EntityType.CONFIG,
+            lambda: device.data.zones[zone_id].equalizer_mid,
+            lambda val: device.set_equalizer(zone_id, mid=int(val)),
+            device.data.zones[zone_id].range_step["equalizer"].minimum,
+            device.data.zones[zone_id].range_step["equalizer"].maximum,
+            device.data.zones[zone_id].range_step["equalizer"].step,
+        ),
+        "high": lambda capability_id, device, zone_id: NumberSetter(
+            capability_id,
+            "Equalizer High",
+            EntityType.CONFIG,
+            lambda: device.data.zones[zone_id].equalizer_high,
+            lambda val: device.set_equalizer(zone_id, high=int(val)),
+            device.data.zones[zone_id].range_step["equalizer"].minimum,
+            device.data.zones[zone_id].range_step["equalizer"].maximum,
+            device.data.zones[zone_id].range_step["equalizer"].step,
+        ),
+    },
+    ZoneFeature.TONE_CONTROL: {
+        "mode": lambda capability_id, device, zone_id: OptionSetter(
+            capability_id,
+            "Tone Control Mode",
+            EntityType.CONFIG,
+            lambda: device.data.zones[zone_id].tone_mode,
+            lambda val: device.set_tone_control(zone_id, mode=val),
+            {key: normalize_option(key) for key in device.data.zones[zone_id].tone_control_mode_list},
+        ),
+        "bass": lambda capability_id, device, zone_id: NumberSetter(
+            capability_id,
+            "Tone Control Bass",
+            EntityType.CONFIG,
+            lambda: device.data.zones[zone_id].tone_bass,
+            lambda val: device.set_tone_control(zone_id, bass=int(val)),
+            device.data.zones[zone_id].range_step["tone_control"].minimum,
+            device.data.zones[zone_id].range_step["tone_control"].maximum,
+            device.data.zones[zone_id].range_step["tone_control"].step,
+        ),
+        "treble": lambda capability_id, device, zone_id: NumberSetter(
+            capability_id,
+            "Tone Control Treble",
+            EntityType.CONFIG,
+            lambda: device.data.zones[zone_id].tone_treble,
+            lambda val: device.set_tone_control(zone_id, treble=int(val)),
+            device.data.zones[zone_id].range_step["tone_control"].minimum,
+            device.data.zones[zone_id].range_step["tone_control"].maximum,
+            device.data.zones[zone_id].range_step["tone_control"].step,
+        ),
+    },
+    ZoneFeature.DIALOGUE_LEVEL: lambda capability_id, device, zone_id: NumberSetter(
+        capability_id,
+        "Dialogue Level",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].dialogue_level,
+        lambda val: device.set_dialogue_level(zone_id, int(val)),
+        device.data.zones[zone_id].range_step["dialogue_level"].minimum,
+        device.data.zones[zone_id].range_step["dialogue_level"].maximum,
+        device.data.zones[zone_id].range_step["dialogue_level"].step,
+    ),
+    ZoneFeature.DIALOGUE_LIFT: lambda capability_id, device, zone_id: NumberSetter(
+        capability_id,
+        "Dialogue Lift",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].dialogue_lift,
+        lambda val: device.set_dialogue_lift(zone_id, int(val)),
+        device.data.zones[zone_id].range_step["dialogue_lift"].minimum,
+        device.data.zones[zone_id].range_step["dialogue_lift"].maximum,
+        device.data.zones[zone_id].range_step["dialogue_lift"].step,
+    ),
+    ZoneFeature.DTS_DIALOGUE_CONTROL: lambda capability_id, device, zone_id: NumberSetter(
+        capability_id,
+        "DTS Dialogue Control",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].dts_dialogue_control,
+        lambda val: device.set_dts_dialogue_control(zone_id, int(val)),
+        device.data.zones[zone_id].range_step["dts_dialogue_control"].minimum,
+        device.data.zones[zone_id].range_step["dts_dialogue_control"].maximum,
+        device.data.zones[zone_id].range_step["dts_dialogue_control"].step,
+    ),
+    ZoneFeature.LINK_AUDIO_DELAY: lambda capability_id, device, zone_id: OptionSetter(
+        capability_id,
+        "Link Audio Delay",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].link_audio_delay,
+        lambda val: device.set_link_audio_delay(zone_id, val),
+        {key: normalize_option(key) for key in device.data.zones[zone_id].link_audio_delay_list},
+    ),
+    ZoneFeature.LINK_CONTROL: lambda capability_id, device, zone_id: OptionSetter(
+        capability_id,
+        "Link Control",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].link_control,
+        lambda val: device.set_link_control(zone_id, val),
+        {key: normalize_option(key) for key in device.data.zones[zone_id].link_control_list},
+    ),
+    ZoneFeature.LINK_AUDIO_QUALITY: lambda capability_id, device, zone_id: OptionSetter(
+        capability_id,
+        "Link Audio Quality",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].link_audio_quality,
+        lambda val: device.set_link_audio_quality(zone_id, val),
+        {key: normalize_option(key) for key in device.data.zones[zone_id].link_audio_quality_list},
+    ),
+    ZoneFeature.BASS_EXTENSION: lambda capability_id, device, zone_id: BinarySetter(
+        capability_id,
+        "Bass Extension",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].bass_extension,
+        lambda val: device.set_bass_extension(zone_id, val),
+    ),
+    ZoneFeature.EXTRA_BASS: lambda capability_id, device, zone_id: BinarySetter(
+        capability_id,
+        "Extra Bass",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].extra_bass,
+        lambda val: device.set_extra_bass(zone_id, val),
+    ),
+    ZoneFeature.ENHANCER: lambda capability_id, device, zone_id: BinarySetter(
+        capability_id,
+        "Enhancer",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].enhancer,
+        lambda val: device.set_enhancer(zone_id, val),
+    ),
+    ZoneFeature.PURE_DIRECT: lambda capability_id, device, zone_id: BinarySetter(
+        capability_id,
+        "Pure Direct",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].pure_direct,
+        lambda val: device.set_pure_direct(zone_id, val),
+    ),
+    ZoneFeature.ADAPTIVE_DRC: lambda capability_id, device, zone_id: BinarySetter(
+        capability_id,
+        "Adaptive DRC",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].adaptive_drc,
+        lambda val: device.set_adaptive_drc(zone_id, val),
+    ),
+    ZoneFeature.ACTUAL_VOLUME: lambda capability_id, device, zone_id: (
+        NumberSetter(
+            capability_id,
+            "Actual Volume",
+            EntityType.REGULAR,
+            lambda: device.data.zones[zone_id].actual_volume,
+            lambda val: device.set_volume_db(zone_id, val),
+            device.data.zones[zone_id].range_step["actual_volume_db"].minimum,
+            device.data.zones[zone_id].range_step["actual_volume_db"].maximum,
+            device.data.zones[zone_id].range_step["actual_volume_db"].step,
+            unit="dB",
+        )
+        if "actual_volume_db" in device.data.zones[zone_id].range_step
+        else None
+    ),
+    ZoneFeature.SUBWOOFER_VOLUME: lambda capability_id, device, zone_id: NumberSetter(
+        capability_id,
+        "Subwoofer Volume",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].subwoofer_volume,
+        lambda val: device.set_subwoofer_volume(zone_id, int(val)),
+        device.data.zones[zone_id].range_step["subwoofer_volume"].minimum,
+        device.data.zones[zone_id].range_step["subwoofer_volume"].maximum,
+        device.data.zones[zone_id].range_step["subwoofer_volume"].step,
+    ),
+    ZoneFeature.CLEAR_VOICE: lambda capability_id, device, zone_id: BinarySetter(
+        capability_id,
+        "Clear Voice",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].clear_voice,
+        lambda val: device.set_clear_voice(zone_id, val),
+    ),
+    ZoneFeature.SURROUND_3D: lambda capability_id, device, zone_id: BinarySetter(
+        capability_id,
+        "3D Surround",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].surround_3d,
+        lambda val: device.set_surround_3d(zone_id, val),
+    ),
+    ZoneFeature.SURROUND_AI: lambda capability_id, device, zone_id: BinarySetter(
+        capability_id,
+        "Surround AI",
+        EntityType.CONFIG,
+        lambda: device.data.zones[zone_id].surround_ai,
+        lambda val: device.set_surround_ai(zone_id, val),
+    ),
+    ZoneFeature.SCENE: lambda capability_id, device, zone_id: [
+        Scene(
+            f"{capability_id}_{num}",
+            num,
+            lambda n: device.data.zones[zone_id].scene_information[n],
+            EntityType.CONFIG,
+            lambda n=num: device.recall_scene(zone_id, n),
+        )
+        for num in (device.data.zones[zone_id].scene_information or {})
+    ],
+}
+
+
+def build_device_capabilities(device: MusicCastDevice) -> list[Capability]:
+    """Build capabilities for the given device.
+
+    The resulting identifiers follow the pattern
+    ``{feature.name.lower()}_{key}``.
+    """
+    result: list[Capability] = []
+    for feature in [f for f in DeviceFeature if f in device.features]:
+        feature_entry = _device_capabilities.get(feature)
+        if feature_entry is not None:
+            if isinstance(feature_entry, dict):
+                for key, capability in feature_entry.items():
+                    capability_id = f"{feature.name}_{key}"
+                    result.append(capability(capability_id, device))
+            else:
+                result.append(feature_entry(feature.name, device))
+    return result
+
+
+def build_zone_capabilities(device: MusicCastDevice, zone_id: str) -> list[Capability]:
+    """Build capabilities for a specific device zone.
+
+    Identifiers follow the pattern ``zone_{feature.name.lower()}_{key}``.
+    """
+    result: list[Capability] = []
+    for feature in [f for f in ZoneFeature if f in device.data.zones[zone_id].features]:
+        feature_entry = _zone_capabilities.get(feature)
+        if feature_entry is not None:
+            if isinstance(feature_entry, dict):
+                for key, capability in feature_entry.items():
+                    capability_id = f"zone_{feature.name}_{key}"
+                    cap = capability(capability_id, device, zone_id)
+                    if cap is not None:
+                        result.append(cap)
+            else:
+                cap_or_list = feature_entry(f"zone_{feature.name}", device, zone_id)
+                if isinstance(cap_or_list, list):
+                    result.extend(c for c in cap_or_list if c is not None)
+                elif cap_or_list is not None:
+                    result.append(cap_or_list)
+    return result
