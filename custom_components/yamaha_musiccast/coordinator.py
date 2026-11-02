@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from .aiomusiccast import MusicCastConnectionException
 from .aiomusiccast.capabilities import Scene
@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=60)
 
-type MusicCastConfigEntry = ConfigEntry["MusicCastDataUpdateCoordinator"]
+type MusicCastConfigEntry = ConfigEntry[MusicCastDataUpdateCoordinator]
 
 
 class MusicCastDataUpdateCoordinator(DataUpdateCoordinator[MusicCastData]):
@@ -48,6 +48,7 @@ class MusicCastDataUpdateCoordinator(DataUpdateCoordinator[MusicCastData]):
         )
         self.entities: list[MusicCastDeviceEntity] = []
 
+    @override
     async def _async_update_data(self) -> MusicCastData:
         """Update data via library."""
         try:

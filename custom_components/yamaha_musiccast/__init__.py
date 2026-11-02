@@ -11,13 +11,14 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import device_registry as dr
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.typing import ConfigType
 
 from .aiomusiccast.capabilities import Scene
-from .const import CONF_SERIAL, CONF_UPNP_DESC, DOMAIN
+from .const import BRAND, CONF_SERIAL, CONF_UPNP_DESC, DEFAULT_ZONE, DOMAIN
 from .coordinator import MusicCastConfigEntry, MusicCastDataUpdateCoordinator
 
 SERVICE_SET_SCENE_INFO = "set_scene_info"
@@ -114,7 +115,7 @@ async def get_upnp_desc(hass: HomeAssistant, host: str):
     return upnp_desc
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: MusicCastConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: MusicCastConfigEntry) -> None:
     """Set up MusicCast from a config entry."""
 
     if entry.data.get(CONF_UPNP_DESC) is None:
@@ -147,19 +148,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: MusicCastConfigEntry) ->
 
     await coordinator.musiccast.device.enable_polling()
 
+    # Register the main device before forwarding platforms so the zone sub-devices
+    # can resolve it as their via_device parent when they are added.
+    device_registry = dr.async_get(hass)
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, coordinator.data.device_id)},
+        connections={
+            (dr.CONNECTION_NETWORK_MAC, mac)
+            for mac in coordinator.data.mac_addresses.values()
+        },
+        name=coordinator.data.zones[DEFAULT_ZONE].name,
+        manufacturer=BRAND,
+        model=coordinator.data.model_name,
+        sw_version=str(coordinator.data.system_version),
+    )
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-    return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: MusicCastConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: MusicCastConfigEntry) -> None:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        entry.runtime_data.musiccast.device.disable_polling()
-
-    return unload_ok
+    await hass.config_entries.async_unload_platforms_or_raise(entry, PLATFORMS)
+    entry.runtime_data.musiccast.device.disable_polling()
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: MusicCastConfigEntry) -> None:
