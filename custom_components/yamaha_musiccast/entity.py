@@ -2,7 +2,7 @@
 
 from typing import override
 
-from .aiomusiccast.capabilities import Capability
+from aiomusiccast_co.capabilities import Capability
 
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo

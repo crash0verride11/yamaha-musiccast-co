@@ -1,57 +1,11 @@
-"""Configure test environment for yamaha_musiccast integration tests.
+"""Fixtures for the MusicCast integration tests."""
 
-The aiomusiccast library is bundled inside the custom component at
-custom_components/yamaha_musiccast/aiomusiccast/. This conftest injects it
-into sys.modules as the top-level 'aiomusiccast' package so test files can
-import it the same way the integration itself does.
-"""
+from collections.abc import Generator
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import importlib.util
-import os
-import sys
-from unittest.mock import MagicMock
-
-import pytest
-
-# ---------------------------------------------------------------------------
-# Inject aiomusiccast as a top-level package before any test file is loaded.
-# ---------------------------------------------------------------------------
-_ROOT = os.path.dirname(os.path.dirname(__file__))
-_AIO_PATH = os.path.join(_ROOT, "custom_components", "yamaha_musiccast", "aiomusiccast")
-
-if "aiomusiccast" not in sys.modules:
-    _spec = importlib.util.spec_from_file_location(
-        "aiomusiccast",
-        os.path.join(_AIO_PATH, "__init__.py"),
-        submodule_search_locations=[_AIO_PATH],
-    )
-    _mod = importlib.util.module_from_spec(_spec)
-    sys.modules["aiomusiccast"] = _mod
-    _spec.loader.exec_module(_mod)
-
-# Make the project root importable so custom_components.yamaha_musiccast.*
-# can be used without installing the package.
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
-
-# ---------------------------------------------------------------------------
-# Shared fixtures
-# ---------------------------------------------------------------------------
-
-from collections.abc import Generator  # noqa: E402
-from unittest.mock import AsyncMock, patch  # noqa: E402
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
-
-from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (  # noqa: E402
-    BinarySetter,
-    EntityType,
-)
-from custom_components.yamaha_musiccast.aiomusiccast.features import (  # noqa: E402
-    DeviceFeature,
-    ZoneFeature,
-)
-from custom_components.yamaha_musiccast.aiomusiccast.musiccast_data import (  # noqa: E402
+from aiomusiccast_co.capabilities import BinarySetter, EntityType
+from aiomusiccast_co.features import DeviceFeature, ZoneFeature
+from aiomusiccast_co.musiccast_data import (
     Category,
     Dimmer,
     MusicCastAlarmDetails,
@@ -59,8 +13,11 @@ from custom_components.yamaha_musiccast.aiomusiccast.musiccast_data import (  # 
     MusicCastZoneData,
     RangeStep,
 )
-from custom_components.yamaha_musiccast.const import DEFAULT_ZONE, DOMAIN  # noqa: E402
-from homeassistant.const import CONF_HOST  # noqa: E402
+import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.yamaha_musiccast.const import DEFAULT_ZONE, DOMAIN
+from homeassistant.const import CONF_HOST
 
 
 @pytest.fixture(autouse=True)

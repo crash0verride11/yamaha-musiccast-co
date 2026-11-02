@@ -177,25 +177,5 @@
         }
       }
     }
-  },
-  "services": {
-    "set_scene_info": {
-      "name": "Set scene info",
-      "description": "Updates scene information for the given scene slot (confirmed: display name). Additional effects may vary by device and firmware.",
-      "fields": {
-        "device_id": {
-          "name": "Device",
-          "description": "The MusicCast zone device to save the scene on."
-        },
-        "scene_num": {
-          "name": "Scene",
-          "description": "The scene slot number to save to (1–8)."
-        },
-        "name": {
-          "name": "Scene name",
-          "description": "Display name to save with the scene."
-        }
-      }
-    }
   }
 }

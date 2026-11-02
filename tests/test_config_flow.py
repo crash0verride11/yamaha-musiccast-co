@@ -4,10 +4,10 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from unittest.mock import AsyncMock, patch
 
+from aiomusiccast_co import MusicCastConnectionException
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.yamaha_musiccast.aiomusiccast import MusicCastConnectionException
 from custom_components.yamaha_musiccast.const import DOMAIN
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
@@ -25,7 +25,7 @@ from homeassistant.helpers.service_info.ssdp import (
 def _patch_valid_device_info() -> Generator[None]:
     """Patch getting valid device info from musiccast API."""
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.get_device_info",
+        "aiomusiccast_co.MusicCastDevice.get_device_info",
         return_value={"system_id": "1234567890", "model_name": "MC20"},
     ):
         yield
@@ -44,7 +44,7 @@ def mock_setup_entry():
 def mock_get_device_info_valid():
     """Mock getting valid device info from musiccast API."""
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.get_device_info",
+        "aiomusiccast_co.MusicCastDevice.get_device_info",
         return_value={"system_id": "1234567890", "model_name": "MC20"},
     ):
         yield
@@ -54,7 +54,7 @@ def mock_get_device_info_valid():
 def mock_get_device_info_invalid():
     """Mock getting invalid device info from musiccast API."""
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.get_device_info",
+        "aiomusiccast_co.MusicCastDevice.get_device_info",
         return_value={"type": "no_yamaha"},
     ):
         yield
@@ -64,7 +64,7 @@ def mock_get_device_info_invalid():
 def mock_get_device_info_exception():
     """Mock raising an unexpected Exception."""
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.get_device_info",
+        "aiomusiccast_co.MusicCastDevice.get_device_info",
         side_effect=Exception("mocked error"),
     ):
         yield
@@ -74,7 +74,7 @@ def mock_get_device_info_exception():
 def mock_get_device_info_mc_exception():
     """Mock raising an unexpected Exception."""
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.get_device_info",
+        "aiomusiccast_co.MusicCastDevice.get_device_info",
         side_effect=MusicCastConnectionException("mocked error"),
     ):
         yield
@@ -84,7 +84,7 @@ def mock_get_device_info_mc_exception():
 def mock_ssdp_yamaha():
     """Mock that the SSDP detected device is a musiccast device."""
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.check_yamaha_ssdp",
+        "aiomusiccast_co.MusicCastDevice.check_yamaha_ssdp",
         return_value=True,
     ):
         yield
@@ -94,7 +94,7 @@ def mock_ssdp_yamaha():
 def mock_ssdp_no_yamaha():
     """Mock that the SSDP detected device is not a musiccast device."""
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.check_yamaha_ssdp",
+        "aiomusiccast_co.MusicCastDevice.check_yamaha_ssdp",
         return_value=False,
     ):
         yield
@@ -469,7 +469,7 @@ async def test_reconfigure_errors(
     result = await mock_reconfigure_entry.start_reconfigure_flow(hass)
 
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.get_device_info",
+        "aiomusiccast_co.MusicCastDevice.get_device_info",
         side_effect=side_effect,
         return_value=return_value,
     ):
@@ -501,7 +501,7 @@ async def test_reconfigure_unique_id_mismatch(
     result = await mock_reconfigure_entry.start_reconfigure_flow(hass)
 
     with patch(
-        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.get_device_info",
+        "aiomusiccast_co.MusicCastDevice.get_device_info",
         return_value={"system_id": "0987654321", "model_name": "MC20"},
     ):
         result = await hass.config_entries.flow.async_configure(

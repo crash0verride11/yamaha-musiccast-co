@@ -3,8 +3,8 @@
 from dataclasses import asdict
 from typing import Any
 
-from .aiomusiccast.features import Feature
-from .aiomusiccast.musiccast_data import MusicCastZoneData
+from aiomusiccast_co.features import Feature
+from aiomusiccast_co.musiccast_data import MusicCastZoneData
 
 from homeassistant.core import HomeAssistant
 

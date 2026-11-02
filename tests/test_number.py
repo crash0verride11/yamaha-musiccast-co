@@ -7,15 +7,10 @@ decoration: SIGNAL_STRENGTH device class, mdi:knob icon, disabled by default.
 
 from unittest.mock import AsyncMock, MagicMock
 
+from aiomusiccast_co.capabilities import EntityType, NumberSetter
+from aiomusiccast_co.exceptions import MusicCastException
 import pytest
 
-from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
-    EntityType,
-    NumberSetter,
-)
-from custom_components.yamaha_musiccast.aiomusiccast.exceptions import (
-    MusicCastException,
-)
 from custom_components.yamaha_musiccast.number import NumberCapability
 from homeassistant.components.number import NumberDeviceClass
 

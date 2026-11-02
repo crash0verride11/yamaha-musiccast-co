@@ -5,7 +5,7 @@ from typing import Any, override
 from urllib.parse import urlparse
 
 from aiohttp import ClientConnectorError, DummyCookieJar
-from .aiomusiccast import MusicCastConnectionException, MusicCastDevice
+from aiomusiccast_co import MusicCastConnectionException, MusicCastDevice
 import probatio
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult

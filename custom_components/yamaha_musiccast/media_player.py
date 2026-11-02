@@ -4,9 +4,9 @@ import contextlib
 import logging
 from typing import Any, override
 
-from .aiomusiccast import MusicCastGroupException, MusicCastMediaContent
-from .aiomusiccast.features import ZoneFeature
-from .aiomusiccast.musiccast_data import Category
+from aiomusiccast_co import MusicCastGroupException, MusicCastMediaContent
+from aiomusiccast_co.features import ZoneFeature
+from aiomusiccast_co.musiccast_data import Category
 
 from homeassistant.components import media_source
 from homeassistant.components.media_player import (

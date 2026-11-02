@@ -6,9 +6,9 @@ The coordinator parses this into a Category enum; the entity maps it to a
 MediaPlayerDeviceClass and a matching MDI icon.
 """
 
+from aiomusiccast_co.musiccast_data import Category
 import pytest
 
-from custom_components.yamaha_musiccast.aiomusiccast.musiccast_data import Category
 from custom_components.yamaha_musiccast.media_player import (
     _CATEGORY_TO_DEVICE_CLASS,
     MusicCastMediaPlayer,

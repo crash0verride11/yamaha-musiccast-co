@@ -2,11 +2,6 @@
 # minus core-only settings. Keep target-version in sync with the HA minimum in hacs.json.
 target-version = "py314"
 
-# The bundled aiomusiccast is linted in its own repo; drop this once it's installed from PyPI.
-extend-exclude = ["custom_components/yamaha_musiccast/aiomusiccast"]
-# pre-commit passes file paths explicitly; make it respect the exclude.
-force-exclude = true
-
 [lint]
 select = [
   "A001",   # Variable {name} is shadowing a Python builtin
@@ -178,10 +173,6 @@ combine-as-imports = true
 split-on-trailing-comma = false
 
 [lint.per-file-ignores]
-# Keep `from .aiomusiccast` imports where core puts `from aiomusiccast`; drop once
-# aiomusiccast is installed from PyPI.
-"custom_components/yamaha_musiccast/*.py" = ["I001"]
-
 # Temporary (as in core)
 "custom_components/**" = ["PTH"]
 "tests/**" = ["PTH"]

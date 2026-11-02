@@ -2,7 +2,7 @@
 
 from typing import override
 
-from .aiomusiccast.capabilities import OptionSetter, Scene
+from aiomusiccast_co.capabilities import OptionSetter, Scene
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant

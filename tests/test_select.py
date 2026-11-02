@@ -10,13 +10,9 @@ Covers both select entity classes defined in select.py:
 
 from unittest.mock import AsyncMock, MagicMock
 
+from aiomusiccast_co.capabilities import EntityType, OptionSetter, Scene
 import pytest
 
-from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
-    EntityType,
-    OptionSetter,
-    Scene,
-)
 from custom_components.yamaha_musiccast.const import TRANSLATION_KEY_MAPPING
 from custom_components.yamaha_musiccast.select import (
     SelectableCapability,

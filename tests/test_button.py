@@ -7,12 +7,9 @@ via ZoneSceneSelect.
 
 from unittest.mock import AsyncMock
 
+from aiomusiccast_co.capabilities import EntityType, Scene
 import pytest
 
-from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
-    EntityType,
-    Scene,
-)
 from custom_components.yamaha_musiccast.button import ZoneSceneButton
 
 # ---------------------------------------------------------------------------

@@ -22,12 +22,3 @@ repos:
         args:
           - --fix
       - id: ruff-format
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.4.1
-    hooks:
-      - id: mypy
-        args:
-          - --config-file=.mypy.ini
-        files: ^custom_components/yamaha_musiccast/aiomusiccast/
-        additional_dependencies:
-          - aiohttp

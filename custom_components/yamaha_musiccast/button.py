@@ -1,6 +1,6 @@
 """The button entities for musiccast."""
 
-from .aiomusiccast.capabilities import Scene
+from aiomusiccast_co.capabilities import Scene
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant

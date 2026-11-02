@@ -4,9 +4,9 @@ from datetime import timedelta
 import logging
 from typing import TYPE_CHECKING, override
 
-from .aiomusiccast import MusicCastConnectionException
-from .aiomusiccast.capabilities import Scene
-from .aiomusiccast.musiccast_device import MusicCastData, MusicCastDevice
+from aiomusiccast_co import MusicCastConnectionException
+from aiomusiccast_co.capabilities import Scene
+from aiomusiccast_co.musiccast_device import MusicCastData, MusicCastDevice
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant

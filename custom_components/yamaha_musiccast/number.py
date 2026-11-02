@@ -2,7 +2,7 @@
 
 from typing import override
 
-from .aiomusiccast.capabilities import NumberSetter
+from aiomusiccast_co.capabilities import NumberSetter
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity
 from homeassistant.core import HomeAssistant

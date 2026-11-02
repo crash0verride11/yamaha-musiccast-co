@@ -2,7 +2,7 @@
 
 from typing import Any, override
 
-from .aiomusiccast.capabilities import BinarySetter
+from aiomusiccast_co.capabilities import BinarySetter
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
