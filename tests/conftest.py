@@ -42,8 +42,14 @@ from custom_components.yamaha_musiccast.aiomusiccast.musiccast_data import Categ
 from collections.abc import Generator  # noqa: E402
 from unittest.mock import AsyncMock, patch  # noqa: E402
 
-from custom_components.yamaha_musiccast.aiomusiccast.capabilities import BinarySetter, EntityType  # noqa: E402
-from custom_components.yamaha_musiccast.aiomusiccast.features import DeviceFeature, ZoneFeature  # noqa: E402
+from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
+    BinarySetter,
+    EntityType,
+)  # noqa: E402
+from custom_components.yamaha_musiccast.aiomusiccast.features import (
+    DeviceFeature,
+    ZoneFeature,
+)  # noqa: E402
 from custom_components.yamaha_musiccast.aiomusiccast.musiccast_data import (  # noqa: E402
     Dimmer,
     MusicCastAlarmDetails,

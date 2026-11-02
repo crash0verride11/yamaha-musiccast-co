@@ -25,7 +25,13 @@ SERVICE_SET_SCENE_INFO = "set_scene_info"
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
-PLATFORMS = [Platform.BUTTON, Platform.MEDIA_PLAYER, Platform.NUMBER, Platform.SELECT, Platform.SWITCH]
+PLATFORMS = [
+    Platform.BUTTON,
+    Platform.MEDIA_PLAYER,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SWITCH,
+]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +50,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
         config_entry_id = next(iter(device.config_entries), None)
         config_entry: MusicCastConfigEntry | None = (
-            hass.config_entries.async_get_entry(config_entry_id) if config_entry_id else None
+            hass.config_entries.async_get_entry(config_entry_id)
+            if config_entry_id
+            else None
         )
         # runtime_data is unset until the entry finishes loading, so check state first
         if config_entry is None or config_entry.state is not ConfigEntryState.LOADED:
@@ -63,7 +71,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         if device_identifier == yamaha_device_id:
             zone_id = "main"
         elif device_identifier and device_identifier.startswith(f"{yamaha_device_id}_"):
-            zone_id = device_identifier[len(yamaha_device_id) + 1:]
+            zone_id = device_identifier[len(yamaha_device_id) + 1 :]
         else:
             raise ServiceValidationError(
                 f"Could not resolve zone from device identifier '{device_identifier}'."
@@ -72,7 +80,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         zone_data = coordinator.data.zones.get(zone_id)
         scene = next(
             (
-                c for c in (zone_data.capabilities if zone_data else [])
+                c
+                for c in (zone_data.capabilities if zone_data else [])
                 if isinstance(c, Scene) and c._num == scene_num
             ),
             None,
@@ -89,11 +98,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         DOMAIN,
         SERVICE_SET_SCENE_INFO,
         handle_set_scene_info,
-        schema=vol.Schema({
-            vol.Required("device_id"): str,
-            vol.Required("scene_num"): vol.All(vol.Coerce(int), vol.Range(min=1, max=8)),
-            vol.Required("name"): str,
-        }),
+        schema=vol.Schema(
+            {
+                vol.Required("device_id"): str,
+                vol.Required("scene_num"): vol.All(
+                    vol.Coerce(int), vol.Range(min=1, max=8)
+                ),
+                vol.Required("name"): str,
+            }
+        ),
     )
     return True
 

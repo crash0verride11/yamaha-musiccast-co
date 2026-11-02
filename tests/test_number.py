@@ -14,7 +14,9 @@ from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
     EntityType,
     NumberSetter,
 )
-from custom_components.yamaha_musiccast.aiomusiccast.exceptions import MusicCastException
+from custom_components.yamaha_musiccast.aiomusiccast.exceptions import (
+    MusicCastException,
+)
 from custom_components.yamaha_musiccast.number import NumberCapability
 
 
@@ -54,17 +56,23 @@ class TestNumberCapabilityDb:
     # --- Entity decoration ---
 
     def test_device_class_is_signal_strength(self, mock_coordinator):
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(), zone_id="main"
+        )
 
         assert entity._attr_device_class == NumberDeviceClass.SIGNAL_STRENGTH
 
     def test_icon_is_knob(self, mock_coordinator):
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(), zone_id="main"
+        )
 
         assert entity._attr_icon == "mdi:knob"
 
     def test_disabled_by_default(self, mock_coordinator):
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(), zone_id="main"
+        )
 
         assert entity._attr_entity_registry_enabled_default is False
 
@@ -79,22 +87,33 @@ class TestNumberCapabilityDb:
         assert entity._attr_native_step == 0.5
 
     def test_unit_of_measurement_is_db(self, mock_coordinator):
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(), zone_id="main"
+        )
 
         assert entity._attr_native_unit_of_measurement == "dB"
 
     # --- native_value ---
 
     def test_native_value_delegates_to_capability(self, mock_coordinator):
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(current=-35.5), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(current=-35.5), zone_id="main"
+        )
 
         assert entity.native_value == -35.5
 
     def test_native_value_reflects_updated_value(self, mock_coordinator):
         readings = [-40.0]
         cap = NumberSetter(
-            "zone_ACTUAL_VOLUME", "Actual Volume", EntityType.REGULAR,
-            lambda: readings[0], AsyncMock(), -80.0, 0.0, 0.5, unit="dB",
+            "zone_ACTUAL_VOLUME",
+            "Actual Volume",
+            EntityType.REGULAR,
+            lambda: readings[0],
+            AsyncMock(),
+            -80.0,
+            0.0,
+            0.5,
+            unit="dB",
         )
         entity = NumberCapability(mock_coordinator, cap, zone_id="main")
 
@@ -107,7 +126,9 @@ class TestNumberCapabilityDb:
     @pytest.mark.asyncio
     async def test_set_native_value_calls_capability_set(self, mock_coordinator):
         set_mock = AsyncMock()
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(set_fn=set_mock), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(set_fn=set_mock), zone_id="main"
+        )
 
         await entity.async_set_native_value(-25.5)
 
@@ -116,7 +137,11 @@ class TestNumberCapabilityDb:
     @pytest.mark.asyncio
     async def test_set_native_value_rejects_above_max(self, mock_coordinator):
         set_mock = AsyncMock()
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(max_val=0.0, set_fn=set_mock), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator,
+            make_actual_volume_cap(max_val=0.0, set_fn=set_mock),
+            zone_id="main",
+        )
 
         with pytest.raises(MusicCastException):
             await entity.async_set_native_value(1.0)
@@ -126,7 +151,11 @@ class TestNumberCapabilityDb:
     @pytest.mark.asyncio
     async def test_set_native_value_rejects_below_min(self, mock_coordinator):
         set_mock = AsyncMock()
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(min_val=-80.0, set_fn=set_mock), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator,
+            make_actual_volume_cap(min_val=-80.0, set_fn=set_mock),
+            zone_id="main",
+        )
 
         with pytest.raises(MusicCastException):
             await entity.async_set_native_value(-81.0)
@@ -136,7 +165,9 @@ class TestNumberCapabilityDb:
     @pytest.mark.asyncio
     async def test_set_native_value_rejects_off_step(self, mock_coordinator):
         set_mock = AsyncMock()
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(set_fn=set_mock), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(set_fn=set_mock), zone_id="main"
+        )
 
         with pytest.raises(MusicCastException):
             await entity.async_set_native_value(-20.3)
@@ -146,15 +177,20 @@ class TestNumberCapabilityDb:
     # --- Unique ID ---
 
     def test_unique_id_for_default_zone(self, mock_coordinator):
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(), zone_id="main")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(), zone_id="main"
+        )
 
         assert entity.unique_id == "TEST_DEVICE_ID_zone_ACTUAL_VOLUME"
 
     def test_unique_id_for_non_default_zone(self, mock_coordinator):
         from unittest.mock import MagicMock
+
         mock_coordinator.data.zones["zone2"] = MagicMock()
 
-        entity = NumberCapability(mock_coordinator, make_actual_volume_cap(), zone_id="zone2")
+        entity = NumberCapability(
+            mock_coordinator, make_actual_volume_cap(), zone_id="zone2"
+        )
 
         assert entity.unique_id == "TEST_DEVICE_ID_zone2_zone_ACTUAL_VOLUME"
 
@@ -165,11 +201,16 @@ class TestNumberCapabilityDb:
 
 
 class TestNumberCapabilityNoUnit:
-
     def test_no_special_decoration(self, mock_coordinator):
         cap = NumberSetter(
-            "some_number", "Some Number", EntityType.REGULAR,
-            lambda: 5, AsyncMock(), 0, 10, 1,
+            "some_number",
+            "Some Number",
+            EntityType.REGULAR,
+            lambda: 5,
+            AsyncMock(),
+            0,
+            10,
+            1,
         )
         entity = NumberCapability(mock_coordinator, cap)
 

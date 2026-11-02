@@ -83,14 +83,20 @@ def mock_get_device_info_mc_exception():
 @pytest.fixture
 def mock_ssdp_yamaha():
     """Mock that the SSDP detected device is a musiccast device."""
-    with patch("custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.check_yamaha_ssdp", return_value=True):
+    with patch(
+        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.check_yamaha_ssdp",
+        return_value=True,
+    ):
         yield
 
 
 @pytest.fixture
 def mock_ssdp_no_yamaha():
     """Mock that the SSDP detected device is not a musiccast device."""
-    with patch("custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.check_yamaha_ssdp", return_value=False):
+    with patch(
+        "custom_components.yamaha_musiccast.aiomusiccast.MusicCastDevice.check_yamaha_ssdp",
+        return_value=False,
+    ):
         yield
 
 

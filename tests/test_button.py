@@ -8,7 +8,10 @@ via ZoneSceneSelect.
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from custom_components.yamaha_musiccast.aiomusiccast.capabilities import EntityType, Scene
+from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
+    EntityType,
+    Scene,
+)
 from custom_components.yamaha_musiccast.button import ZoneSceneButton
 
 
@@ -52,7 +55,9 @@ class TestZoneSceneButton:
         assert btn.available
 
     def test_unavailable_when_scene_stored_for_different_zone(self, mock_coordinator):
-        mock_coordinator.selected_scenes = {"zone2": make_scene(1, "Morning", zone_id="zone2")}
+        mock_coordinator.selected_scenes = {
+            "zone2": make_scene(1, "Morning", zone_id="zone2")
+        }
 
         btn = ZoneSceneButton(mock_coordinator, "main")
 
@@ -70,7 +75,9 @@ class TestZoneSceneButton:
     @pytest.mark.asyncio
     async def test_press_activates_stored_scene(self, mock_coordinator):
         activate_mock = AsyncMock()
-        scene = Scene("main_scene_1", 1, lambda n: "Morning", EntityType.CONFIG, activate_mock)
+        scene = Scene(
+            "main_scene_1", 1, lambda n: "Morning", EntityType.CONFIG, activate_mock
+        )
         mock_coordinator.selected_scenes = {"main": scene}
         mock_coordinator.async_request_refresh = AsyncMock()
 
@@ -82,7 +89,9 @@ class TestZoneSceneButton:
     @pytest.mark.asyncio
     async def test_press_requests_coordinator_refresh(self, mock_coordinator):
         activate_mock = AsyncMock()
-        scene = Scene("main_scene_1", 1, lambda n: "Morning", EntityType.CONFIG, activate_mock)
+        scene = Scene(
+            "main_scene_1", 1, lambda n: "Morning", EntityType.CONFIG, activate_mock
+        )
         mock_coordinator.selected_scenes = {"main": scene}
         mock_coordinator.async_request_refresh = AsyncMock()
 

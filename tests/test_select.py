@@ -17,7 +17,10 @@ from custom_components.yamaha_musiccast.aiomusiccast.capabilities import (
     Scene,
 )
 from custom_components.yamaha_musiccast.const import TRANSLATION_KEY_MAPPING
-from custom_components.yamaha_musiccast.select import SelectableCapability, ZoneSceneSelect
+from custom_components.yamaha_musiccast.select import (
+    SelectableCapability,
+    ZoneSceneSelect,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -25,7 +28,9 @@ from custom_components.yamaha_musiccast.select import SelectableCapability, Zone
 # ---------------------------------------------------------------------------
 
 
-def make_speaker_pattern_cap(current: int = 0, patterns: list[int] | None = None) -> OptionSetter:
+def make_speaker_pattern_cap(
+    current: int = 0, patterns: list[int] | None = None
+) -> OptionSetter:
     if patterns is None:
         patterns = [0, 1, 2]
     return OptionSetter(
@@ -80,7 +85,9 @@ class TestSelectableCapability:
 
     def test_current_option_is_none_when_value_not_in_options(self, mock_coordinator):
         cap = OptionSetter(
-            "SPEAKER_PATTERN", "Speaker Pattern", EntityType.CONFIG,
+            "SPEAKER_PATTERN",
+            "Speaker Pattern",
+            EntityType.CONFIG,
             lambda: 99,
             AsyncMock(),
             {0: "pattern_0"},
@@ -95,7 +102,9 @@ class TestSelectableCapability:
         cap = make_speaker_pattern_cap()
         entity = SelectableCapability(mock_coordinator, cap)
 
-        assert entity._attr_translation_key == TRANSLATION_KEY_MAPPING.get("SPEAKER_PATTERN")
+        assert entity._attr_translation_key == TRANSLATION_KEY_MAPPING.get(
+            "SPEAKER_PATTERN"
+        )
         assert entity._attr_translation_key == "speaker_pattern"
 
     def test_unique_id_combines_device_and_capability(self, mock_coordinator):
@@ -122,8 +131,12 @@ class TestSelectableCapability:
         """async_select_option must forward the numeric key, not the display string."""
         set_mock = AsyncMock()
         cap = OptionSetter(
-            "SPEAKER_PATTERN", "Speaker Pattern", EntityType.CONFIG,
-            lambda: 0, set_mock, {0: "pattern_0", 1: "pattern_1"},
+            "SPEAKER_PATTERN",
+            "Speaker Pattern",
+            EntityType.CONFIG,
+            lambda: 0,
+            set_mock,
+            {0: "pattern_0", 1: "pattern_1"},
         )
         entity = SelectableCapability(mock_coordinator, cap)
 
@@ -143,13 +156,19 @@ class TestSelectableCapability:
     async def test_translation_key_refreshed_after_select(self, mock_coordinator):
         set_mock = AsyncMock()
         cap = OptionSetter(
-            "SPEAKER_PATTERN", "Speaker Pattern", EntityType.CONFIG,
-            lambda: 0, set_mock, {0: "pattern_0", 1: "pattern_1"},
+            "SPEAKER_PATTERN",
+            "Speaker Pattern",
+            EntityType.CONFIG,
+            lambda: 0,
+            set_mock,
+            {0: "pattern_0", 1: "pattern_1"},
         )
         entity = SelectableCapability(mock_coordinator, cap)
         await entity.async_select_option("pattern_0")
 
-        assert entity._attr_translation_key == TRANSLATION_KEY_MAPPING.get("SPEAKER_PATTERN")
+        assert entity._attr_translation_key == TRANSLATION_KEY_MAPPING.get(
+            "SPEAKER_PATTERN"
+        )
 
 
 # ===========================================================================
@@ -234,7 +253,9 @@ class TestZoneSceneSelect:
     async def test_select_option_does_not_activate_scene(self, mock_coordinator):
         """Selection is deferred — activate() must not be called here."""
         activate_mock = AsyncMock()
-        scene = Scene("main_scene_1", 1, lambda n: "Morning", EntityType.CONFIG, activate_mock)
+        scene = Scene(
+            "main_scene_1", 1, lambda n: "Morning", EntityType.CONFIG, activate_mock
+        )
         mock_coordinator.data.zones["main"].capabilities = [scene]
         mock_coordinator.selected_scenes = {}
 

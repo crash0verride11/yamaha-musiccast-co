@@ -26,9 +26,7 @@ async def test_device_via_device_links(
     """
     mock_config_entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.yamaha_musiccast.PLATFORMS", [Platform.SWITCH]
-    ):
+    with patch("custom_components.yamaha_musiccast.PLATFORMS", [Platform.SWITCH]):
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 

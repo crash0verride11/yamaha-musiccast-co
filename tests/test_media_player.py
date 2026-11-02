@@ -32,7 +32,6 @@ def make_player(coordinator) -> MusicCastMediaPlayer:
 
 
 class TestCategoryEnum:
-
     @pytest.mark.parametrize(
         "code, expected",
         [
@@ -59,7 +58,6 @@ class TestCategoryEnum:
 
 
 class TestCategoryToDeviceClassMapping:
-
     @pytest.mark.parametrize(
         "category, expected_class",
         [
@@ -89,7 +87,6 @@ class TestCategoryToDeviceClassMapping:
 
 
 class TestMusicCastMediaPlayerDeviceClassAndIcon:
-
     @pytest.mark.parametrize(
         "category, expected_class",
         [
