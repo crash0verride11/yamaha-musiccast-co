@@ -83,25 +83,35 @@ class ZoneSceneSelect(MusicCastDeviceEntity, SelectEntity):
     ) -> None:
         """Initialize the zone scene select."""
         self._zone_id = zone_id
-        self._scenes: dict[str, Scene] = {
-            cap.name: cap
+        self._scenes: list[Scene] = [
+            cap
             for cap in coordinator.data.zones[zone_id].capabilities
             if isinstance(cap, Scene)
-        }
+        ]
         super().__init__(
             name="Scene list", icon="mdi:multimedia", coordinator=coordinator
         )
-        self._attr_options = list(self._scenes.keys())
-        selected = coordinator.selected_scenes.get(zone_id)
-        self._attr_current_option = selected.name if selected is not None else None
 
     @property
     def unique_id(self) -> str:
         """Return the unique ID for this entity."""
         return f"{self.device_id}_scene_select"
 
+    # Scene names come from the device and can change (set_scene_info), so read
+    # them on every state write instead of caching them at setup.
+    @property
+    def options(self) -> list[str]:
+        """Return the zone's scene names."""
+        return [scene.name for scene in self._scenes]
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the name of the selected scene."""
+        selected = self.coordinator.selected_scenes.get(self._zone_id)
+        return selected.name if selected is not None else None
+
     async def async_select_option(self, option: str) -> None:
         """Store the selected scene; activate via the Activate Scene button."""
-        self.coordinator.selected_scenes[self._zone_id] = self._scenes[option]
-        self._attr_current_option = option
+        scenes = {scene.name: scene for scene in self._scenes}
+        self.coordinator.selected_scenes[self._zone_id] = scenes[option]
         self.async_write_ha_state()

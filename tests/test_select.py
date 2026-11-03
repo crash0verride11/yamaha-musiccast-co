@@ -230,6 +230,21 @@ class TestZoneSceneSelect:
 
         assert entity.unique_id == "TEST_DEVICE_ID_scene_select"
 
+    def test_renamed_scene_shows_new_name(self, mock_coordinator):
+        """Test a scene renamed on the device shows up without a reload."""
+        titles = {1: "Morning"}
+        scene = Scene(
+            "main_scene_1", 1, lambda n: titles[n], EntityType.CONFIG, AsyncMock()
+        )
+        mock_coordinator.data.zones["main"].capabilities = [scene]
+        mock_coordinator.selected_scenes = {"main": scene}
+        entity = ZoneSceneSelect(mock_coordinator, "main")
+
+        titles[1] = "Sunrise"
+
+        assert entity.options == ["1: Sunrise"]
+        assert entity.current_option == "1: Sunrise"
+
     # --- async_select_option ---
 
     @pytest.mark.asyncio
