@@ -8,6 +8,7 @@ Within the last year I've more heavily used AI to work on this integration. I'm 
 ## Added Feature List
 - Actual volume
 - Zone scenes
+- Rename scenes
 - Speaker pattern
 - Surround AI
 - Media player device class and icon
@@ -24,6 +25,28 @@ Added as a number entity per zone, in dB, with the range and step reported by th
 For zones that support scenes, two entities are added to the zone's device:
 - **Scene list** (select): lists the zone's scenes as `<number>: <name>`, as named on the device. Choosing a scene only stores it; it doesn't switch anything yet. The first scene is selected at startup.
 - **Switch Scene** (button): recalls the scene chosen in Scene list.
+
+### Rename Scenes
+
+The `yamaha_musiccast.set_scene_info` action renames a zone scene on the device. The new name shows up in the zone's Scene list a few seconds later. Renaming is the only thing this api is known to do.
+
+| Field | Description |
+|---|---|
+| `device_id` | The MusicCast zone device the scene belongs to. The main zone is the receiver's main device; other zones have their own devices, such as Zone 2. |
+| `scene_num` | The scene slot to rename, from 1 to 8. It must be a scene the zone already has, as listed in its Scene list. |
+| `name` | The new name for the scene. |
+
+#### Example:
+
+```yaml
+action: yamaha_musiccast.set_scene_info
+data:
+  device_id: 0123456789abcdef0123456789abcdef
+  scene_num: 2
+  name: Movie Night
+```
+
+To find a zone's `device_id`, open **Developer tools > Actions**, select this action, pick the zone in the Device field, then switch to YAML mode.
 
 ### Speaker Pattern
 
