@@ -32,7 +32,7 @@ jobs:
           --with homeassistant
           --with pytest-homeassistant-custom-component
           --with async-upnp-client
-          --with aiomusiccast-co==0.16.0
+          --with aiomusiccast-co==0.17.0
           pytest -v
 
   hassfest:

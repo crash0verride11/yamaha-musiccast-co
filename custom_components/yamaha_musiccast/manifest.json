@@ -11,7 +11,7 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/crash0verride11/yamaha-musiccast-co/issues",
   "loggers": ["aiomusiccast_co"],
-  "requirements": ["aiomusiccast-co==0.16.0"],
+  "requirements": ["aiomusiccast-co==0.17.0"],
   "ssdp": [
     {
       "manufacturer": "Yamaha Corporation"
