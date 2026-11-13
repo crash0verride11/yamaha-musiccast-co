@@ -29,8 +29,7 @@ jobs:
       - name: Run tests
         run: >-
           uvx --python 3.14
-          --with homeassistant
-          --with pytest-homeassistant-custom-component
+          --with pytest-homeassistant
           --with async-upnp-client
           --with aiomusiccast-co==0.17.3
           pytest -v

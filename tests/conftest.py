@@ -14,15 +14,10 @@ from aiomusiccast_co.musiccast_data import (
     RangeStep,
 )
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.yamaha_musiccast.const import DEFAULT_ZONE, DOMAIN
 from homeassistant.const import CONF_HOST
-
-
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
-    """Load this repo's yamaha_musiccast instead of the core integration."""
 
 
 @pytest.fixture
