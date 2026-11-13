@@ -4,8 +4,17 @@ Covers the device class and icon logic in MusicCastMediaPlayer, which is
 driven by the category_code the device reports in its getDeviceInfo response.
 The coordinator parses this into a Category enum; the entity maps it to a
 MediaPlayerDeviceClass and a matching MDI icon.
+
+Also covers async_browse_media turning library errors into BrowseError.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
+from aiomusiccast_co import (
+    MusicCastConnectionException,
+    MusicCastException,
+    MusicCastResponseException,
+)
 from aiomusiccast_co.musiccast_data import Category
 import pytest
 
@@ -13,7 +22,7 @@ from custom_components.yamaha_musiccast.media_player import (
     _CATEGORY_TO_DEVICE_CLASS,
     MusicCastMediaPlayer,
 )
-from homeassistant.components.media_player import MediaPlayerDeviceClass
+from homeassistant.components.media_player import BrowseError, MediaPlayerDeviceClass
 
 # ---------------------------------------------------------------------------
 # Helper
@@ -134,3 +143,56 @@ class TestMusicCastMediaPlayerDeviceClassAndIcon:
         player = make_player(mock_coordinator)
 
         assert player.icon == expected_icon
+
+
+# ---------------------------------------------------------------------------
+# MusicCastMediaPlayer.async_browse_media error handling
+# ---------------------------------------------------------------------------
+
+BROWSE_ERRORS = [
+    MusicCastResponseException("getListInfo response has no menu layer"),
+    MusicCastException("list is still too deep after 20 return commands"),
+    MusicCastConnectionException("timeout"),
+    ValueError("unknown browse method"),
+]
+
+
+class TestBrowseMediaErrors:
+    """Tests that library errors while browsing surface as BrowseError."""
+
+    @pytest.fixture
+    def player(self, mock_coordinator) -> MusicCastMediaPlayer:
+        """Return a powered-on main-zone player."""
+        mock_coordinator.data.zones["main"].power = "on"
+        mock_coordinator.data.netusb_playback = "play"
+        return make_player(mock_coordinator)
+
+    @pytest.mark.parametrize("error", BROWSE_ERRORS)
+    async def test_browse_media_error(self, player, error):
+        """Test a failed browse raises BrowseError chained to the library error."""
+        with (
+            patch(
+                "custom_components.yamaha_musiccast.media_player.MusicCastMediaContent.browse_media",
+                AsyncMock(side_effect=error),
+            ),
+            pytest.raises(
+                BrowseError, match="Could not browse media on My Speaker"
+            ) as exc_info,
+        ):
+            await player.async_browse_media("music", "net_radio:0")
+
+        assert exc_info.value.__cause__ is error
+
+    @pytest.mark.parametrize("error", BROWSE_ERRORS)
+    async def test_categories_error(self, player, error):
+        """Test a failure listing the root categories raises BrowseError."""
+        with (
+            patch(
+                "custom_components.yamaha_musiccast.media_player.MusicCastMediaContent.categories",
+                MagicMock(side_effect=error),
+            ),
+            pytest.raises(BrowseError) as exc_info,
+        ):
+            await player.async_browse_media()
+
+        assert exc_info.value.__cause__ is error

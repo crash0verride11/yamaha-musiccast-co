@@ -4,7 +4,11 @@ import contextlib
 import logging
 from typing import Any, override
 
-from aiomusiccast_co import MusicCastGroupException, MusicCastMediaContent
+from aiomusiccast_co import (
+    MusicCastException,
+    MusicCastGroupException,
+    MusicCastMediaContent,
+)
 from aiomusiccast_co.features import ZoneFeature
 from aiomusiccast_co.musiccast_data import Category
 
@@ -387,18 +391,21 @@ class MusicCastMediaPlayer(MusicCastDeviceEntity, MediaPlayerEntity):
                 "The device has to be turned on to be able to browse media."
             )
 
-        if media_content_id:
-            media_content_path = media_content_id.split(":")
-            media_content_provider = await MusicCastMediaContent.browse_media(
-                self.coordinator.musiccast, self._zone_id, media_content_path, 24
-            )
-            add_media_source = False
+        try:
+            if media_content_id:
+                media_content_path = media_content_id.split(":")
+                media_content_provider = await MusicCastMediaContent.browse_media(
+                    self.coordinator.musiccast, self._zone_id, media_content_path, 24
+                )
+                add_media_source = False
 
-        else:
-            media_content_provider = MusicCastMediaContent.categories(
-                self.coordinator.musiccast, self._zone_id
-            )
-            add_media_source = True
+            else:
+                media_content_provider = MusicCastMediaContent.categories(
+                    self.coordinator.musiccast, self._zone_id
+                )
+                add_media_source = True
+        except (MusicCastException, ValueError) as err:
+            raise BrowseError(f"Could not browse media on {self.name}: {err}") from err
 
         def get_content_type(item):
             if item.can_play:
