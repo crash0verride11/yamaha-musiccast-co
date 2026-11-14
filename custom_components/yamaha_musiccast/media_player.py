@@ -23,6 +23,9 @@ from homeassistant.components.media_player import (
     MediaPlayerState,
     MediaType,
     RepeatMode,
+    SearchError,
+    SearchMedia,
+    SearchMediaQuery,
     async_process_play_media_url,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -349,10 +352,17 @@ class MusicCastMediaPlayer(MusicCastDeviceEntity, MediaPlayerEntity):
             parts = media_id.split(":")
 
             if parts[0] == "list":
-                if (index := parts[3]) == "-1":
-                    index = "0"
-
-                await self.coordinator.musiccast.play_list_media(index, self._zone_id)
+                # The library moves the list cursor to the entry's list first,
+                # so the right entry plays even if the cursor moved since
+                # browsing.
+                try:
+                    await MusicCastMediaContent.play_list_entry(
+                        self.coordinator.musiccast, self._zone_id, media_id
+                    )
+                except (MusicCastException, ValueError) as err:
+                    raise HomeAssistantError(
+                        f"Could not play {media_id} on {self.name}: {err}"
+                    ) from err
                 return
 
             if parts[0] == "presets":
@@ -420,6 +430,7 @@ class MusicCastMediaPlayer(MusicCastDeviceEntity, MediaPlayerEntity):
                 media_content_type=get_content_type(child),
                 can_play=child.can_play,
                 can_expand=child.can_browse,
+                can_search=child.can_search,
                 thumbnail=child.thumbnail,
             )
             for child in media_content_provider.children
@@ -448,7 +459,55 @@ class MusicCastMediaPlayer(MusicCastDeviceEntity, MediaPlayerEntity):
             media_content_type=get_content_type(media_content_provider),
             can_play=False,
             can_expand=media_content_provider.can_browse,
+            can_search=media_content_provider.can_search,
             children=children,
+        )
+
+    @override
+    async def async_search_media(self, query: SearchMediaQuery) -> SearchMedia:
+        """Search with a search entry of a list, or the current source."""
+        if self.state == MediaPlayerState.OFF:
+            raise SearchError(
+                "The device has to be turned on to be able to search media."
+            )
+
+        if not (media_content_id := query.media_content_id):
+            # Without a list entry to search with, use the first search entry
+            # of the current source's root menu.
+            source = self.source_id
+            if source not in MusicCastMediaContent.BROWSABLE_INPUTS:
+                raise SearchError(
+                    f"The current source of {self.name} can't be searched"
+                )
+            media_content_id = f"input:{source}"
+
+        try:
+            results = await MusicCastMediaContent.search(
+                self.coordinator.musiccast,
+                self._zone_id,
+                media_content_id,
+                query.search_query,
+                24,
+            )
+        except (MusicCastException, ValueError) as err:
+            raise SearchError(f"Could not search media on {self.name}: {err}") from err
+
+        return SearchMedia(
+            result=[
+                BrowseMedia(
+                    title=item.title,
+                    media_class=MEDIA_CLASS_MAPPING.get(item.content_type),
+                    media_content_id=item.content_id,
+                    media_content_type=(
+                        MediaClass.TRACK if item.can_play else MediaClass.DIRECTORY
+                    ),
+                    can_play=item.can_play,
+                    can_expand=item.can_browse,
+                    can_search=item.can_search,
+                    thumbnail=item.thumbnail,
+                )
+                for item in results.children
+            ]
         )
 
     @override
@@ -532,6 +591,7 @@ class MusicCastMediaPlayer(MusicCastDeviceEntity, MediaPlayerEntity):
 
         if self.state != MediaPlayerState.OFF:
             supported_features |= MediaPlayerEntityFeature.BROWSE_MEDIA
+            supported_features |= MediaPlayerEntityFeature.SEARCH_MEDIA
 
         return supported_features
 

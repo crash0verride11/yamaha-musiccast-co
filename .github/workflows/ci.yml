@@ -31,7 +31,7 @@ jobs:
           uvx --python 3.14
           --with pytest-homeassistant
           --with async-upnp-client
-          --with aiomusiccast-co==0.17.3
+          --with aiomusiccast-co==0.18.0
           pytest -v
 
   hassfest:

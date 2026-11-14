@@ -12,6 +12,7 @@ Within the last year I've more heavily used AI to work on this integration. I'm 
 - Speaker pattern
 - Surround AI
 - Media player device class and icon
+- TIDAL browsing and media search
 - Longer request timeout
 
 ### Actual Volume
@@ -61,6 +62,12 @@ A switch entity (configuration, zone level) to turn Surround:AI on or off, on de
 The media player's device class and icon follow the device category reported by the device:
 - AV and stereo receivers: receiver device class, `mdi:audio-video` icon
 - Soundbars, subwoofers, mini systems and desktop audio: speaker device class, `mdi:speaker` icon
+
+### TIDAL Browsing and Media Search
+
+TIDAL shows up in the media browser when the zone has it as an input, next to NET RADIO, USB, Server and the other list-based services.
+
+Search entries in a service's menu (such as NET RADIO's **Search**) open a search box in the media browser. The `media_player.search_media` action works too: pass a search entry's `media_content_id`, or leave it out to use the first search entry of the current source.
 
 ### Longer Request Timeout
 
